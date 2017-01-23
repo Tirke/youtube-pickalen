@@ -1,2 +1,7 @@
+![Imgur](http://i.imgur.com/MXtwJGB.png)
+
 # youtube-pickalen
-Chrome plugin to filter youtube videos by length
+Small and simple Chrome extension to filter youtube videos by length.
+
+
+

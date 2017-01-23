@@ -1,7 +1,9 @@
 {
   "manifest_version": 2,
   "name": "Youtube Pickalen",
-  "description": "This extension allows to filter youtube videos by length",
+  "short_name" : "yt-pickalen",
+  "description": "Filter Youtube videos by length.",
+  "homepage_url": "https://github.com/tirke/youtube-pickalen",
   "version": "1.0",
   "icons": {
     "128": "icons/128.png",
