@@ -1,6 +1,6 @@
 (function () {
     const VIDEO_TIME_ELEM = 'span.video-time';
-    const PARENT_DIV_CLASS = 'yt-shelf-grid-item';
+    const LAST_DIV_CLASS = 'yt-lockup-video';
     let filteredItems = [];
 
     function hideLongerThan(time) {
@@ -8,7 +8,7 @@
             const totalTime = computeTotalTime(elem);
 
             if (totalTime > time) {
-                let video = filterUntilShelf(elem);
+                let video = getRootVideoElement(elem);
                 filteredItems.push(video);
                 video.style.display = 'none';
             }
@@ -20,7 +20,7 @@
             const totalTime = computeTotalTime(elem);
 
             if (totalTime < time) {
-                let video = filterUntilShelf(elem);
+                let video = getRootVideoElement(elem);
                 filteredItems.push(video);
                 video.style.display = 'none';
             }
@@ -32,7 +32,7 @@
             const totalTime = computeTotalTime(elem);
 
             if (totalTime > maxTime || totalTime < minTime) {
-                let video = filterUntilShelf(elem);
+                let video = getRootVideoElement(elem);
                 filteredItems.push(video);
                 video.style.display = 'none';
             }
@@ -52,14 +52,14 @@
         return totalMinutes;
     }
 
-    function filterUntilShelf(elem) {
+    function getRootVideoElement(elem) {
         let i = 0; // To prevent infinite looping if className changes
 
-        while (!(elem.parentNode.className.includes(PARENT_DIV_CLASS)) && i < 6) {
+        while (!(elem.parentNode.className.includes(LAST_DIV_CLASS)) && i < 6) {
             elem = elem.parentNode
         }
 
-        return elem.parentNode;
+        return elem.parentNode.parentNode; // It's a bit rude, but we need the parent <li>
     }
 
 
