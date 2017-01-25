@@ -3,18 +3,11 @@
     const PARENT_DIV_CLASS = 'yt-shelf-grid-item';
     let filteredItems = [];
 
-    function hideVideos(maxTime) {
+    function hideLongerThan(time) {
         [...document.querySelectorAll(VIDEO_TIME_ELEM)].forEach(elem => {
-            const videoTime = elem.textContent.split(':').map(Number);
-            let totalMinutes = 0;
+            const totalTime = computeTotalTime(elem);
 
-            if (videoTime.length === 3) {
-                totalMinutes += (videoTime[0] * 60) + videoTime[1];
-            } else {
-                totalMinutes += videoTime[0]
-            }
-
-            if (totalMinutes < maxTime) {
+            if (totalTime > time) {
                 let video = filterUntilShelf(elem);
                 filteredItems.push(video);
                 video.style.display = 'none';
@@ -22,6 +15,42 @@
         });
     }
 
+    function hideShorterThan(time) {
+        [...document.querySelectorAll(VIDEO_TIME_ELEM)].forEach(elem => {
+            const totalTime = computeTotalTime(elem);
+
+            if (totalTime < time) {
+                let video = filterUntilShelf(elem);
+                filteredItems.push(video);
+                video.style.display = 'none';
+            }
+        });
+    }
+
+    function hideBetween(minTime, maxTime) {
+        [...document.querySelectorAll(VIDEO_TIME_ELEM)].forEach(elem => {
+            const totalTime = computeTotalTime(elem);
+
+            if (totalTime > maxTime || totalTime < minTime) {
+                let video = filterUntilShelf(elem);
+                filteredItems.push(video);
+                video.style.display = 'none';
+            }
+        });
+    }
+
+    function computeTotalTime(videoTimeElement) {
+        const videoTime = videoTimeElement.textContent.split(':').map(Number);
+        let totalMinutes = 0;
+
+        if (videoTime.length === 3) {
+            totalMinutes += (videoTime[0] * 60) + videoTime[1];
+        } else {
+            totalMinutes += videoTime[0]
+        }
+
+        return totalMinutes;
+    }
 
     function filterUntilShelf(elem) {
         let i = 0; // To prevent infinite looping if className changes
@@ -46,8 +75,15 @@
 
     chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
 
-        if (msg.minutes) {
-            hideVideos(msg.minutes);
+        if (msg.bmax && msg.bmin) {
+            showVideosAgain();
+            hideBetween(msg.bmin, msg.bmax);
+        } else if (msg.max) {
+            showVideosAgain();
+            hideLongerThan(msg.max);
+        } else if (msg.min) {
+            showVideosAgain();
+            hideShorterThan(msg.min);
         }
 
         if (msg.action && msg.action === 'reset') {

@@ -6,12 +6,21 @@
     <script src="popup.js"></script>
 </head>
 <body>
-<label class="label" for="duration">Duration</label>
+<label class="label" for="max">Shorter Than (Maximum)</label>
 <p class="control">
-    <input class="input" placeholder="In Minutes" type="text" id="duration" required>
+    <input class="input" placeholder="In Minutes" type="text" id="max">
+</p>
+<label class="label" for="min">Longer Than (Minimum)</label>
+<p class="control">
+<input class="input" placeholder="In Minutes" type="text" id="min">
+</p>
+<label class="label" for="bmin">Between (Min-Max)</label>
+<p class="control d-flex">
+    <input class="input mr-1" placeholder="In Minutes" type="text" id="bmin">
+    <input class="input" placeholder="In Minutes" type="text" id="bmax">
 </p>
 <div class="btn-group">
-    <button id="filter-btn" class="button red is-outlined">Filter</button>
+    <button id="filter-btn" class="button red is-outlined">Show</button>
     <button id="reset-btn" class="button red is-outlined">Reset</button>
 </div>
 </body>
