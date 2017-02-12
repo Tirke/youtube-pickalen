@@ -1,45 +1,26 @@
 (function () {
+    const GRID_VIDEO = '.yt-shelf-grid-item';
+    const LIST_VIDEO = 'ol.section-list>li';
+    const PL_VIDEO = 'tr.pl-video';
     const VIDEO_TIME_ELEM = 'span.video-time';
-    const LAST_DIV_CLASS = 'yt-lockup-video';
-    let filteredItems = [];
+    const PLAYLIST_VIDEO_TIME = '.timestamp span';
 
-    function hideLongerThan(time) {
-        [...document.querySelectorAll(VIDEO_TIME_ELEM)].forEach(elem => {
-            const totalTime = computeTotalTime(elem);
+    const curry2 = f => x => y => f(x, y);
 
-            if (totalTime > time) {
-                let video = getRootVideoElement(elem);
-                filteredItems.push(video);
-                video.style.display = 'none';
-            }
-        });
-    }
+    const compose = ([f, ...fs]) => x =>
+        f === undefined ? x : f(compose(fs)(x));
 
-    function hideShorterThan(time) {
-        [...document.querySelectorAll(VIDEO_TIME_ELEM)].forEach(elem => {
-            const totalTime = computeTotalTime(elem);
+    const filter = curry2((f, xs) => xs.filter(f));
 
-            if (totalTime < time) {
-                let video = getRootVideoElement(elem);
-                filteredItems.push(video);
-                video.style.display = 'none';
-            }
-        });
-    }
+    const map = curry2((f, xs) => xs.map(f));
 
-    function hideBetween(minTime, maxTime) {
-        [...document.querySelectorAll(VIDEO_TIME_ELEM)].forEach(elem => {
-            const totalTime = computeTotalTime(elem);
+    const getVideos = _ => [GRID_VIDEO, LIST_VIDEO, PL_VIDEO].reduce((a, b) => {
+        const videos = [...document.querySelectorAll(b)];
+        if (videos.length && !a.length) return videos; // We check a.length bcof conflict between GRID and LIST
+        return a;
+    }, []);
 
-            if (totalTime > maxTime || totalTime < minTime) {
-                let video = getRootVideoElement(elem);
-                filteredItems.push(video);
-                video.style.display = 'none';
-            }
-        });
-    }
-
-    function computeTotalTime(videoTimeElement) {
+    const totalTime = (videoTimeElement) => {
         const videoTime = videoTimeElement.textContent.split(':').map(Number);
         let totalMinutes = 0;
 
@@ -50,26 +31,43 @@
         }
 
         return totalMinutes;
-    }
+    };
 
-    function getRootVideoElement(elem) {
-        let i = 0; // To prevent infinite looping if className changes
-
-        while (!(elem.parentNode.className.includes(LAST_DIV_CLASS)) && i < 6) {
-            elem = elem.parentNode
-        }
-
-        return elem.parentNode.parentNode; // It's a bit rude, but we need the parent <li>
-    }
-
-
-    function showVideosAgain() {
-        filteredItems.forEach(function (video) {
-            video.style.display = 'inline-block';
+    const filterLongerThan = time => {
+        return filter((video) => {
+            const timeElem = video.querySelector(VIDEO_TIME_ELEM) || video.querySelector(PLAYLIST_VIDEO_TIME);
+            if (timeElem === null) {
+                return true;
+            }
+            return totalTime(timeElem) > time;
         });
+    };
 
-        filteredItems = [];
-    }
+    const filterShortThan = time => {
+        return filter((video) => {
+            const timeElem = video.querySelector(VIDEO_TIME_ELEM) || video.querySelector(PLAYLIST_VIDEO_TIME);
+            if (timeElem === null) {
+                return true;
+            }
+            return totalTime(timeElem) < time;
+        });
+    };
+
+    const filterBetween = (minTime, maxTime) => {
+        return filter((video) => {
+            const timeElem = video.querySelector(VIDEO_TIME_ELEM) || video.querySelector(PLAYLIST_VIDEO_TIME);
+            if (timeElem === null) {
+                return true;
+            }
+            const time = totalTime(timeElem);
+            return time > maxTime || time < minTime;
+        });
+    };
+
+    const switchDisplay = video => video.classList.toggle('hideVideo');
+
+    const showVideosAgain = _ => [...document.querySelectorAll('.hideVideo')].map(switchDisplay);
+
 
     chrome.runtime.sendMessage({action: 'showPageAction'});
 
@@ -77,13 +75,13 @@
 
         if (msg.bmax && msg.bmin) {
             showVideosAgain();
-            hideBetween(msg.bmin, msg.bmax);
+            compose([map(switchDisplay), filterBetween(msg.bmin, msg.bmax), getVideos])();
         } else if (msg.max) {
             showVideosAgain();
-            hideLongerThan(msg.max);
+            compose([map(switchDisplay), filterLongerThan(msg.max), getVideos])();
         } else if (msg.min) {
             showVideosAgain();
-            hideShorterThan(msg.min);
+            compose([map(switchDisplay), filterShortThan(msg.min), getVideos])();
         }
 
         if (msg.action && msg.action === 'reset') {
