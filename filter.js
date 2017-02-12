@@ -1,6 +1,6 @@
 (function () {
     const GRID_VIDEO = '.yt-shelf-grid-item';
-    const LIST_VIDEO = 'ol.section-list>li';
+    const LIST_VIDEO = 'ol.item-section>li';
     const PL_VIDEO = 'tr.pl-video';
     const VIDEO_TIME_ELEM = 'span.video-time';
     const PLAYLIST_VIDEO_TIME = '.timestamp span';
