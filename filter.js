@@ -20,6 +20,10 @@
         return a;
     }, []);
 
+    const getTimeElem = video => {
+        return video.querySelector(VIDEO_TIME_ELEM) || video.querySelector(PLAYLIST_VIDEO_TIME);
+    };
+
     const totalTime = (videoTimeElement) => {
         const videoTime = videoTimeElement.textContent.split(':').map(Number);
         let totalMinutes = 0;
@@ -35,39 +39,29 @@
 
     const filterLongerThan = time => {
         return filter((video) => {
-            const timeElem = video.querySelector(VIDEO_TIME_ELEM) || video.querySelector(PLAYLIST_VIDEO_TIME);
-            if (timeElem === null) {
-                return true;
-            }
-            return totalTime(timeElem) > time;
+            const timeElem = getTimeElem(video);
+            return timeElem === null ? true : totalTime(timeElem) > time;
         });
     };
 
     const filterShortThan = time => {
         return filter((video) => {
-            const timeElem = video.querySelector(VIDEO_TIME_ELEM) || video.querySelector(PLAYLIST_VIDEO_TIME);
-            if (timeElem === null) {
-                return true;
-            }
-            return totalTime(timeElem) < time;
+            const timeElem = getTimeElem(video);
+            return timeElem === null ? true : totalTime(timeElem) < time;
         });
     };
 
     const filterBetween = (minTime, maxTime) => {
         return filter((video) => {
-            const timeElem = video.querySelector(VIDEO_TIME_ELEM) || video.querySelector(PLAYLIST_VIDEO_TIME);
-            if (timeElem === null) {
-                return true;
-            }
+            const timeElem = getTimeElem(video);
             const time = totalTime(timeElem);
-            return time > maxTime || time < minTime;
+            return timeElem === null ? true : time > maxTime || time < minTime;
         });
     };
 
     const switchDisplay = video => video.classList.toggle('hideVideo');
 
     const showVideosAgain = _ => [...document.querySelectorAll('.hideVideo')].map(switchDisplay);
-
 
     chrome.runtime.sendMessage({action: 'showPageAction'});
 
@@ -89,4 +83,3 @@
         }
     });
 })();
-
